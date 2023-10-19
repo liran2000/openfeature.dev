@@ -48,13 +48,36 @@ SDK application cluster can help significantly.
 
 ```mermaid
 sequenceDiagram
+  box MediumAquamarine App cluster
   participant SDK as SDK (server-side)
-  participant features as Features Service <br> / Proxy / Source
+  end
+  box PowderBlue Remote Location
+  participant features as Features Service <br> / Source
+  end
   SDK->>features: getBooleanEvaluation
   features->>SDK: true/false
   note left of SDK: another request
   SDK->>features: getBooleanEvaluation
   features->>SDK: true/false
+```
+
+###  "Direct" API endpoints Bridge SDK using Relay Proxy - example flow
+
+```mermaid
+sequenceDiagram
+  box MediumAquamarine App Cluster
+    participant SDK as SDK (server-side)
+    participant proxy as Relay Proxy
+  end
+  box PowderBlue Remote Location
+    participant features as Features Service <br> / Source
+  end
+  proxy->features: 
+  SDK->>proxy: getBooleanEvaluation
+  proxy->>SDK: true/false
+  note left of SDK: another request
+  SDK->>proxy: getBooleanEvaluation
+  proxy->>SDK: true/false
 ```
 
 #### Advantages
@@ -81,14 +104,45 @@ As this approach involves network traffic for non-cached evaluations, a Relay Pr
 traffic data on internal network for faster and efficient performance and reducing the load on the Features Service / 
 Source.
 
+### API endpoints requests with cache
+At this approach, the Feature Flags service expose APIs via endpoints like REST HTTP and/or gRpc, and the SDK calling
+the endpoint requests, and translate the request/responses to the programming language. A cache is used for responses
+data.  
+Feature flag evaluation is done on proxy / features service only.  
+As this approach involves network traffic for non-cached evaluations, a Relay Proxy is effective for having the network
+traffic data on internal network for faster and efficient performance and reducing the load on the Features Service /
+Source.
+
 ###  API endpoints requests with cache - example flow
 
 ```mermaid
 sequenceDiagram
-  participant SDK as SDK (server-side)
-  participant features as Features Service <br> / Proxy / Source
+  box MediumAquamarine App cluster
+    participant SDK as SDK (server-side)
+  end
+  box PowderBlue Remote Location
+    participant features as Features Service <br> / Source
+  end
   SDK->>features: getBooleanEvaluation
   features->>SDK: true/false
+  note left of SDK: another request
+  SDK->>SDK: getBooleanEvaluation true/false from cache
+```
+
+###  API endpoints requests with cache using Relay Proxy - example flow
+
+```mermaid
+sequenceDiagram
+  box MediumAquamarine App Cluster
+    participant SDK as SDK (server-side)
+    participant proxy as Relay Proxy
+  end
+  box PowderBlue Remote Location
+    participant features as Features Service <br> / Source
+  end
+  proxy->features: 
+  SDK->>proxy: getBooleanEvaluation
+  proxy->>SDK: true/false
   note left of SDK: another request
   SDK->>SDK: getBooleanEvaluation true/false from cache
 ```
@@ -112,8 +166,9 @@ sequenceDiagram
 At this approach, the Feature Flags configuration is saved locally at the SDK.  
 Feature flag evaluation is done on locally via the SDK and not affecting network traffic.
 With this approach, configuration can be fetched on initialization, and be refreshed periodically and/or when there is
-a configuration change, which can be triggered at the SDK via stream event from the Feature Flags service.
-When this approach is used, evaluation analytics metrics can be aggregated at the SDK side and published separately, as 
+a configuration change, which can be triggered at the SDK via stream event (for example 
+[SSE](https://en.wikipedia.org/wiki/Server-sent_events)) from the Feature Flags service.
+When this approach is used, evaluation analytics metrics can be aggregated at the SDK side and published separately, as
 not every flag evaluation triggers a message to the Features Service / Proxy.
 
 ###  Local evaluation - example flow
@@ -146,7 +201,8 @@ sequenceDiagram
 * Feature flags configuration can be cached on CDN.
 * Feature flag evaluation is done on locally via the SDK and not affecting network traffic, hence can be fast and
   efficient.
-* Working without a relay proxy can still be efficient from SDK point of view, as network traffic does not block common 
+* Working without a relay proxy can still be efficient from SDK point of view, as flags are evaluated locally and
+  network traffic does not block common
   flow.
 
 #### Disadvantages
