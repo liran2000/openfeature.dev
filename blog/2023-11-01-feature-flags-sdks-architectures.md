@@ -3,12 +3,12 @@ slug: 'feature-flags-sdks-architectures'
 title: 'feature-flags-sdks-architectures'
 date: 2023-11-01
 authors: [ liran2000 ]
-description: "Feature Flags services Server SDKs different architectures approaches"
+description: "Feature Flags services Server-side SDKs different architectures approaches"
 tags: [ client, sdk ]
 draft: false
 ---
 
-Server SDKs (software development kits) are common for letting applications like microservices interact with Feature
+Server-side SDKs (software development kits) are common for letting applications like microservices interact with Feature
 Flags services.  
 Feature Flags SDKs has several used functionalities, mainly feature flag evaluation with or without a context. Each
 Feature Flags service can publish SDKs in multiple programming languages.  
@@ -22,7 +22,7 @@ Service. Considering that a large amount of microservices using SDKs instances c
 
 <!--truncate-->
 
-## Feature Flags services Server SDKs different architectures approaches
+## Feature Flags services Server-side SDKs different architectures approaches
 
 During usage and development involvement at several feature flag services providers, I have encountered some different
 architectures approaches used by some vendors. Each vendor server-side SDK can commonly belong to one of the described
@@ -85,6 +85,7 @@ proxy->>SDK: true/false
 #### Advantages
 
 * Can be relatively simple to develop and maintain from the APIs in multiple code languages, even by code generation.
+  The evaluation code can reside at the Relay Proxy, without a need to implement evaluation per SDK language.
 
 #### Disadvantages
 
@@ -210,8 +211,9 @@ sequenceDiagram
 
 * When feature flags configuration is very large with many feature flags, network traffic and local cache sizes can be
   increased.
-* Local evaluation should be implemented at the SDK, considering rules like context properties based and percentage
-  rollout.
+* Local evaluation should be implemented at the SDK, developed and maintained for multiple languages. Considering rules
+  like context properties based and percentage rollout strategies via hashing to buckets, it can be hard to keep 100%
+  feature parity across languages.
 
 #### A note on client-side SDKs for web browser / client app
 
